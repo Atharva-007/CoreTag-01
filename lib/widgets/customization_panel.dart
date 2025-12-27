@@ -203,76 +203,93 @@ class _CustomizationPanelState extends State<CustomizationPanel> {
       orElse: () => '',
     );
 
+    // Check if music or navigation is active
+    bool hasMusicWidget = _currentState.widgets.any((w) => w.startsWith('music-'));
+    bool hasNavigation = _currentState.widgets.any((w) => w.startsWith('nav-') && _currentState.navigation.ridingMode);
+    
+    // Disable clock/time and weather widgets when music or navigation is active
+    bool isDisabled = false;
+    if ((prefix == 'time-' || prefix == 'weather-') && (hasMusicWidget || hasNavigation)) {
+      isDisabled = true;
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           title,
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: isDisabled ? Colors.grey.shade400 : Colors.black,
+          ),
         ),
         const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            ...options.map((option) {
-              final isSelected = currentWidget == option.$2;
-              return GestureDetector(
-                onTap: () {
+        Opacity(
+          opacity: isDisabled ? 0.4 : 1.0,
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              ...options.map((option) {
+                final isSelected = currentWidget == option.$2;
+                return GestureDetector(
+                  onTap: isDisabled ? null : () {
+                    final newWidgets = _currentState.widgets
+                        .where((w) => !w.startsWith(prefix))
+                        .toList();
+                    newWidgets.add(option.$2);
+                    _updateState(_currentState.copyWith(widgets: newWidgets));
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: isSelected ? const Color(0xFF6366F1) : Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: isSelected ? const Color(0xFF6366F1) : Colors.grey.shade300,
+                      ),
+                    ),
+                    child: Text(
+                      option.$1,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isSelected ? Colors.white : Colors.black87,
+                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                      ),
+                    ),
+                  ),
+                );
+              }),
+              // None option
+              GestureDetector(
+                onTap: isDisabled ? null : () {
                   final newWidgets = _currentState.widgets
                       .where((w) => !w.startsWith(prefix))
                       .toList();
-                  newWidgets.add(option.$2);
                   _updateState(_currentState.copyWith(widgets: newWidgets));
                 },
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(
-                    color: isSelected ? const Color(0xFF6366F1) : Colors.grey.shade100,
+                    color: currentWidget.isEmpty ? Colors.red.shade50 : Colors.grey.shade100,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: isSelected ? const Color(0xFF6366F1) : Colors.grey.shade300,
+                      color: currentWidget.isEmpty ? Colors.red.shade300 : Colors.grey.shade300,
                     ),
                   ),
                   child: Text(
-                    option.$1,
+                    'None',
                     style: TextStyle(
                       fontSize: 12,
-                      color: isSelected ? Colors.white : Colors.black87,
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                      color: currentWidget.isEmpty ? Colors.red : Colors.black87,
+                      fontWeight: currentWidget.isEmpty ? FontWeight.w600 : FontWeight.normal,
                     ),
                   ),
                 ),
-              );
-            }),
-            // None option
-            GestureDetector(
-              onTap: () {
-                final newWidgets = _currentState.widgets
-                    .where((w) => !w.startsWith(prefix))
-                    .toList();
-                _updateState(_currentState.copyWith(widgets: newWidgets));
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: currentWidget.isEmpty ? Colors.red.shade50 : Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: currentWidget.isEmpty ? Colors.red.shade300 : Colors.grey.shade300,
-                  ),
-                ),
-                child: Text(
-                  'None',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: currentWidget.isEmpty ? Colors.red : Colors.black87,
-                    fontWeight: currentWidget.isEmpty ? FontWeight.w600 : FontWeight.normal,
-                  ),
-                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ],
     );

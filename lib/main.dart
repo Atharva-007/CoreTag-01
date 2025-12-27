@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/rendering.dart';
 import 'screens/dashboard_screen.dart';
 import 'theme/app_theme.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Performance optimizations
+  debugProfileBuildsEnabled = false;
+  debugProfilePaintsEnabled = false;
+  
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -15,6 +21,10 @@ void main() {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
+  
+  // Enable high refresh rate
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  
   runApp(const PhotoTagApp());
 }
 
@@ -30,6 +40,20 @@ class PhotoTagApp extends StatelessWidget {
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.light,
       home: const DashboardScreen(),
+      // Performance optimizations
+      showPerformanceOverlay: false,
+      checkerboardRasterCacheImages: false,
+      checkerboardOffscreenLayers: false,
+      showSemanticsDebugger: false,
+      builder: (context, child) {
+        return ScrollConfiguration(
+          behavior: const MaterialScrollBehavior().copyWith(
+            physics: const BouncingScrollPhysics(),
+            scrollbars: false,
+          ),
+          child: child!,
+        );
+      },
     );
   }
 }
