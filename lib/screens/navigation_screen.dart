@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../models/device_state.dart';
-import '../services/navigation_service.dart';
 
 class NavigationScreen extends StatefulWidget {
   final DeviceState deviceState;
@@ -21,15 +20,10 @@ class NavigationScreen extends StatefulWidget {
 }
 
 class _NavigationScreenState extends State<NavigationScreen> {
-  final NavigationService _navigationService = NavigationService();
   
   @override
   void initState() {
     super.initState();
-    _navigationService.initialize();
-    _navigationService.navigationStream.listen((navState) {
-      widget.onUpdate(widget.deviceState.copyWith(navigation: navState));
-    });
   }
 
   @override
@@ -61,7 +55,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -130,7 +124,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.blue.withOpacity(0.3),
+                      color: Colors.blue.withValues(alpha: 0.3),
                       blurRadius: 20,
                       offset: const Offset(0, 8),
                     ),
@@ -143,7 +137,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
                       Text(
                         'Navigating to',
                         style: TextStyle(
-                          color: Colors.white.withOpacity(0.9),
+                          color: Colors.white.withValues(alpha: 0.9),
                           fontSize: 14,
                         ),
                       ),
@@ -202,7 +196,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withValues(alpha: 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -216,7 +210,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: Colors.blue.withOpacity(0.1),
+                            color: Colors.blue.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: const Icon(
@@ -360,7 +354,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.2),
+        color: Colors.white.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -379,7 +373,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
           Text(
             label,
             style: TextStyle(
-              color: Colors.white.withOpacity(0.8),
+              color: Colors.white.withValues(alpha: 0.8),
               fontSize: 11,
             ),
           ),
@@ -390,7 +384,6 @@ class _NavigationScreenState extends State<NavigationScreen> {
 
   @override
   void dispose() {
-    _navigationService.dispose();
     super.dispose();
   }
 }

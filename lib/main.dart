@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'screens/login_screen.dart';
 import 'package:flutter/rendering.dart';
-import 'screens/dashboard_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart'; // Import Riverpod
+
 import 'theme/app_theme.dart';
 
 void main() {
@@ -25,7 +27,7 @@ void main() {
   // Enable high refresh rate
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   
-  runApp(const PhotoTagApp());
+  runApp(const ProviderScope(child: PhotoTagApp())); // Wrap with ProviderScope
 }
 
 class PhotoTagApp extends StatelessWidget {
@@ -38,8 +40,8 @@ class PhotoTagApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.light,
-      home: const DashboardScreen(),
+      themeMode: ThemeMode.system, // Use system theme
+      home: const LoginScreen(),
       // Performance optimizations
       showPerformanceOverlay: false,
       checkerboardRasterCacheImages: false,
@@ -51,7 +53,7 @@ class PhotoTagApp extends StatelessWidget {
             physics: const BouncingScrollPhysics(),
             scrollbars: false,
           ),
-          child: child!,
+          child: child ?? const SizedBox(), // Null check for child
         );
       },
     );

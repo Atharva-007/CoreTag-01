@@ -1,47 +1,57 @@
+import 'custom_widget_state.dart';
+
 class DeviceState {
   final bool isConnected;
   final int battery;
   final String theme;
-  final List<String> widgets;
+  final String deviceMode; // 'tag', 'carry', or 'watch'
+  final List<CustomWidgetState> widgets;
   final MusicState music;
   final NavigationState navigation;
   final WeatherState weather;
   final AODState aod;
   final String? backgroundImage;
+  final String customName;
 
   DeviceState({
     this.isConnected = false,
     this.battery = 85,
     this.theme = 'dark',
+    this.deviceMode = 'tag',
     this.widgets = const [],
     required this.music,
     required this.navigation,
     required this.weather,
     required this.aod,
     this.backgroundImage,
+    this.customName = '',
   });
 
   DeviceState copyWith({
     bool? isConnected,
     int? battery,
     String? theme,
-    List<String>? widgets,
+    String? deviceMode,
+    List<CustomWidgetState>? widgets,
     MusicState? music,
     NavigationState? navigation,
     WeatherState? weather,
     AODState? aod,
     String? backgroundImage,
+    String? customName,
   }) {
     return DeviceState(
       isConnected: isConnected ?? this.isConnected,
       battery: battery ?? this.battery,
       theme: theme ?? this.theme,
+      deviceMode: deviceMode ?? this.deviceMode,
       widgets: widgets ?? this.widgets,
       music: music ?? this.music,
       navigation: navigation ?? this.navigation,
       weather: weather ?? this.weather,
       aod: aod ?? this.aod,
       backgroundImage: backgroundImage ?? this.backgroundImage,
+      customName: customName ?? this.customName,
     );
   }
 }
@@ -149,19 +159,23 @@ class WeatherState {
 class AODState {
   final bool enabled;
   final String timeout;
+  final List<CustomWidgetState> widgets;
 
   const AODState({
     this.enabled = false,
     this.timeout = 'always',
+    this.widgets = const [],
   });
 
   AODState copyWith({
     bool? enabled,
     String? timeout,
+    List<CustomWidgetState>? widgets,
   }) {
     return AODState(
       enabled: enabled ?? this.enabled,
       timeout: timeout ?? this.timeout,
+      widgets: widgets ?? this.widgets,
     );
   }
 }

@@ -2,24 +2,25 @@ package com.example.coretag
 
 import android.content.ComponentName
 import android.content.Intent
-import android.os.Bundle
 import android.provider.Settings
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodChannel
+import android.util.Log // Import Log
 
 class MainActivity : FlutterActivity() {
-    private val CHANNEL = "com.example.coretag/music"
-    private val EVENT_CHANNEL = "com.example.coretag/music_stream"
-    private val NAV_CHANNEL = "com.example.coretag/navigation"
-    private val NAV_EVENT_CHANNEL = "com.example.coretag/navigation_stream"
+    private val MUSIC_CHANNEL = "com.example.coretag/music"
+    private val MUSIC_EVENT_CHANNEL = "com.example.coretag/music_stream"
+    private val NAVIGATION_CHANNEL = "com.example.coretag/navigation" // New MethodChannel for navigation
+    private val NAVIGATION_EVENT_CHANNEL = "com.example.coretag/new_navigation_stream"
+
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
-        // Method Channel for requesting permissions
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
+        // MUSIC Method Channel
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, MUSIC_CHANNEL).setMethodCallHandler { call, result ->
             when (call.method) {
                 "requestPermission" -> {
                     val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
@@ -32,41 +33,20 @@ class MainActivity : FlutterActivity() {
                 }
                 "refreshMusic" -> {
                     // Manually trigger music update
-                    NotificationListener.instance?.let {
-                        // Force refresh
-                        android.os.Handler(android.os.Looper.getMainLooper()).post {
-                            try {
-                                val method = it.javaClass.getDeclaredMethod("updateMediaControllers")
-                                method.isAccessible = true
-                                method.invoke(it)
-                            } catch (e: Exception) {
-                                e.printStackTrace()
-                            }
-                        }
-                    }
+                    NotificationListener.instance?.updateMediaControllers()
                     result.success(true)
                 }
                 else -> result.notImplemented()
             }
         }
 
-        // Event Channel for music updates
-        EventChannel(flutterEngine.dartExecutor.binaryMessenger, EVENT_CHANNEL).setStreamHandler(
+        // MUSIC Event Channel
+        EventChannel(flutterEngine.dartExecutor.binaryMessenger, MUSIC_EVENT_CHANNEL).setStreamHandler(
             object : EventChannel.StreamHandler {
                 override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
                     NotificationListener.eventSink = events
                     // Trigger immediate update
-                    NotificationListener.instance?.let {
-                        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-                            try {
-                                val method = it.javaClass.getDeclaredMethod("updateMediaControllers")
-                                method.isAccessible = true
-                                method.invoke(it)
-                            } catch (e: Exception) {
-                                e.printStackTrace()
-                            }
-                        }, 500)
-                    }
+                    NotificationListener.instance?.updateMediaControllers()
                 }
 
                 override fun onCancel(arguments: Any?) {
@@ -75,8 +55,8 @@ class MainActivity : FlutterActivity() {
             }
         )
 
-        // Navigation Method Channel
-        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, NAV_CHANNEL).setMethodCallHandler { call, result ->
+        // NAVIGATION Method Channel (New)
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, NAVIGATION_CHANNEL).setMethodCallHandler { call, result ->
             when (call.method) {
                 "requestPermission" -> {
                     val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
@@ -84,34 +64,25 @@ class MainActivity : FlutterActivity() {
                     result.success(true)
                 }
                 "checkPermission" -> {
-                    val enabled = isNotificationServiceEnabled()
+                    val enabled = isNotificationServiceEnabled() // Notification permission covers navigation too
                     result.success(enabled)
                 }
                 else -> result.notImplemented()
             }
         }
 
-        // Navigation Event Channel
-        EventChannel(flutterEngine.dartExecutor.binaryMessenger, NAV_EVENT_CHANNEL).setStreamHandler(
+        // NAVIGATION Event Channel
+        EventChannel(flutterEngine.dartExecutor.binaryMessenger, NAVIGATION_EVENT_CHANNEL).setStreamHandler(
             object : EventChannel.StreamHandler {
                 override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
-                    NotificationListener.navigationEventSink = events
-                    // Trigger immediate update
-                    NotificationListener.instance?.let {
-                        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-                            try {
-                                val method = it.javaClass.getDeclaredMethod("checkNavigationNotifications")
-                                method.isAccessible = true
-                                method.invoke(it)
-                            } catch (e: Exception) {
-                                e.printStackTrace()
-                            }
-                        }, 500)
-                    }
+                    NavigationListenerService.eventSink = events
+                    // Start the service if it's not already running
+                    val serviceIntent = Intent(applicationContext, NavigationListenerService::class.java)
+                    applicationContext.startService(serviceIntent)
                 }
 
                 override fun onCancel(arguments: Any?) {
-                    NotificationListener.navigationEventSink = null
+                    NavigationListenerService.eventSink = null
                 }
             }
         )
